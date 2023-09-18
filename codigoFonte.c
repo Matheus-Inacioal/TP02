@@ -2,54 +2,77 @@
 #include <stdlib.h>
 #include <string.h>
 
-// Função de comparação para o quicksort com base no comprimento da string
-int compare(const void *a, const void *b) {
+int comparar(const void *a, const void *b) {
     return strlen(*(const char **)a) - strlen(*(const char **)b);
+}
+
+void trocar(char **a, char **b) {
+    char *temp = *a;
+    *a = *b;
+    *b = temp;
+}
+
+void quicksort(char **arr, int esquerda, int direita, int *trocas, int *comparacoes) {
+    if (esquerda < direita) {
+        int i = esquerda, j = direita;
+        char *pivot = arr[(i + j) / 2];
+
+        while (i <= j) {
+            while (strlen(arr[i]) < strlen(pivot)) {
+                i++;
+                (*comparacoes)++;
+            }
+            while (strlen(arr[j]) > strlen(pivot)) {
+                j--;
+                (*comparacoes)++;
+            }
+            if (i <= j) {
+                trocar(&arr[i], &arr[j]);
+                i++;
+                j--;
+                (*trocas)++;
+            }
+        }
+
+        quicksort(arr, esquerda, j, trocas, comparacoes);
+        quicksort(arr, i, direita, trocas, comparacoes);
+    }
 }
 
 int main() {
     char *arr[20] = {
-        "maca", "banana", "pera", "uva", "laranja", "abacaxi", "limão", "manga", "abacate", "kiwi",
-        "cereja", "morango", "pêssego", "goiaba", "melancia", "framboesa", "amora", "caqui", "figo", "papaya"
+        "maca", "banana", "pera", "uva", "laranja", "abacaxi", "limao", "manga", "abacate", "kiwi",
+        "cereja", "morango", "pessego", "goiaba", "melancia", "framboesa", "amora", "caqui", "figo", "papaya"
     };
 
-    // Contadores para trocas e comparações
-    int swaps = 0, comparisons = 0;
+    int trocas = 0, comparacoes = 0;
 
-    // Ordena o vetor usando quicksort com base no comprimento da string
-    qsort(arr, 20, sizeof(char *), compare);
+    quicksort(arr, 0, 19, &trocas, &comparacoes);
 
-    // Mostra o vetor ordenado
-    printf("Vetor ordenado por tamanho das palavras:\n");
-    for (int i = 0; i < 20; i++) {
-        printf("%s\n", arr[i]);
-    }
+    char *mediana = arr[9];
 
-    // Calcula a mediana (elemento do meio)
-    char *mediana = arr[9]; // No vetor ordenado, a mediana é o elemento de índice 9.
-
-    // Mostra a mediana
-    printf("\nMediana: %s\n", mediana);
-
-    // Mostra o número de trocas e comparações
-    printf("\nNúmero de trocas: %d\n", swaps);
-    printf("Número de comparações: %d\n", comparisons);
-
-    // Gera um arquivo de texto de saída
-    FILE *outputFile = fopen("saida.txt", "w");
-    if (outputFile == NULL) {
+    FILE *arquivoCSV = fopen("saida.csv", "w");
+    if (arquivoCSV == NULL) {
         perror("Erro ao abrir o arquivo de saída");
         return 1;
     }
 
-    // Escreve o vetor ordenado no arquivo
+    fprintf(arquivoCSV, "Palavra, Tamanho\n");
+
     for (int i = 0; i < 20; i++) {
-        fprintf(outputFile, "%s\n", arr[i]);
+        fprintf(arquivoCSV, "%s, %d\n", arr[i], (int)strlen(arr[i]));
     }
 
-    // Fecha o arquivo
-    fclose(outputFile);
+    fprintf(arquivoCSV, "Trocas: %d\n", trocas);
+    fprintf(arquivoCSV, "Comparacoes: %d\n", comparacoes);
+    fprintf(arquivoCSV, "Mediana: %s\n", mediana);
+
+    fclose(arquivoCSV);
+
+    printf("Vetor ordenado por tamanho das palavras foi salvo em 'saida.csv'.\n");
+    printf("Número de trocas: %d\n", trocas);
+    printf("Número de comparações: %d\n", comparacoes);
+    printf("Mediana: %s\n", mediana);
 
     return 0;
 }
-  
